@@ -1,4 +1,3 @@
-import time
 import pathlib
 import socket
 import threading
@@ -32,6 +31,7 @@ class OBSPluginListener(Listener):
             self._thread.join(timeout=5)
 
     # ─── internals ───────────────────────────────────────────────────────
+
     def _read_frame(self):
         log.info("Reading frame from OBS plugin path: %s", config.OBS_PLUGIN_FRAME_PATH)
         path = config.OBS_PLUGIN_FRAME_PATH
@@ -61,6 +61,8 @@ class OBSPluginListener(Listener):
                 continue  # just re-check the loop condition
             except Exception as e:
                 log.error("Error in OBSPluginListener: %s", e)
+                if config.DEBUG:
+                    raise e
         sock.close()
 
     def _check_pending_ocr(self) -> None:

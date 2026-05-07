@@ -1,26 +1,26 @@
-"""Centralized configuration for the owocr → F5-TTS → RVC pipeline."""
+DEBUG = True
+
+# ──────────────────────────────────────────────────────────
+# ── Text sourcing ─────────────────────────────────────────
+# ──────────────────────────────────────────────────────────
+# Available values:
+# "ocr", "websocket_client", "websocket_server"
+TEXT_SOURCE = "ocr"
+
+
 
 # ──────────────────────────────────────────────────────────
 # ── OCR ───────────────────────────────────────────────────
 # ──────────────────────────────────────────────────────────
 # Choose OCR solution
 # Available values:
-# "owocr_send_frames", "owocr_receive_only", "ollama", "ollama_plain"
+# "owocr_send_frames", "ollama", "ollama_plain"
 # > "owocr_send_frames" - capture frames in this app and send to owocr for OCR; requires owocr WS server running
-# > "owocr_receive_only" - receive already-recognized text from owocr WS server, don't send frames; requires owocr WS server running and configured to send recognized text
+# > "websocket" - receive recognized text from owocr WS server, don't send frames; requires owocr WS server running and configured to send recognized text
+# > "ollama" - capture frames and OCR via Ollama; returns structured JSON with text_type and replicas (speaker/type classification)
 # > "ollama_plain" - capture frames and OCR via Ollama; returns plain text wrapped as a single Narrator replica (no speaker/type classification)
-OCR_PROVIDER = "ollama_plain"
+OCR_PROVIDER = "owocr_send_frames"
 # What will be used to capture images that are passed to OCR_PROVIDER
-# > Some OCR solutions (e.g. "owocr_receive_only") provide their own frame capturing,
-# > when using one of those FRAME_CAPTURE_METHOD can be set to empty string to
-# > let the OCR solution handle it.
-# Required if OCR_PROVIDER is one of:
-# > "ollama"
-# > "owocr_send_frames"
-# Ignored if OCR_PROVIDER is one of:
-# > "owocr_receive_only"
-# Can be empty if OCR_PROVIDER is one of:
-# > "owocr_receive_only"
 # Available values:
 # "obs_plugin" (preferred), "obs_websocket"
 FRAME_CAPTURE_METHOD = "obs_plugin"
@@ -31,13 +31,22 @@ OLLAMA_TEXT_CLEANUP_ENABLED = False  # First use AI to fix misrecognized charact
 OCR_DEDUP_ENABLED = True     # Then skip duplicate texts
 TEXT_FILTER_ENABLED = False   # Then run text through filters
 OCR_PASSES = 2
-TEXT_WEBSOCKET_ENABLED = True
+TEXT_WEBSOCKET_ENABLED = False
 TEXT_WEBSOCKET_HOST = "localhost"
 TEXT_WEBSOCKET_PORT = 7331
 
 
-# ── owocr (OCR_PROVIDER in ("owocr_send_frames", "owocr_receive_only")) ────────────────────────────────────────────────────────────────────
-OWOCR_WS_URL = "ws://localhost:7331"
+# ── owocr (OCR_PROVIDER == "owocr_send_frames") ────────────────────────────────────────────────────────────────────
+
+# Must match "read_from" setting in owocr
+OWOCR_READ_FROM_DIRECTORY = "/dev/shm/owocr_input"
+
+# Must match "write_to" setting in owocr
+# output_format in owocr must be set to "text"
+# delete_images in owocr is recommended to be on
+OWOCR_WRITE_TO_DIRECTORY = "/dev/shm/owocr_output"
+
+OWOCR_MONITOR_DIRECTORY_INTERVAL = 0.5  # seconds between checks for OCR results
 
 
 # ── OBS Websocket (FRAME_CAPTURE_METHOD == "obs_websocket") ─────────────────────────────────────
@@ -145,6 +154,23 @@ Return only the JSON object. No explanation, no extra text.
 """.strip()
 
 
+
+# ──────────────────────────────────────────────────────────
+# ── Websocket (source) ────────────────────────────────────
+# ──────────────────────────────────────────────────────────
+
+# ── Websocket client (TEXT_SOURCE == "websocket_client") ─────────────────────
+TEXT_SOURCE_WEBSOCKET_CLIENT_URL = "ws://localhost:7331"
+
+# ── Websocket server (TEXT_SOURCE == "websocket_server") ─────────────────────
+TEXT_SOURCE_WEBSOCKET_SERVER_PORT = 7332
+
+
+
+# ──────────────────────────────────────────────────────────
+# ── Text processing ─────────────────────────────────────────
+# ──────────────────────────────────────────────────────────
+
 # ── Ollama · (OLLAMA_TEXT_CLEANUP_ENABLED is True) ────────────────────────────────────────────────────
 OLLAMA_CLEANUP_MODEL = "qwen3.5:0.8b"
 OLLAMA_CLEANUP_SYSTEM_PROMPT = '''
@@ -203,6 +229,7 @@ TEXT_FILTER_UI_BLOCKLIST: list[str] = [
     "Divergent Universe",
     "You",
     "X",
+    "A wanted poster hangs on the wall."
 ]
 
 
@@ -213,8 +240,11 @@ TEXT_FILTER_UI_BLOCKLIST: list[str] = [
 # Available values:
 # "kokoro_fastapi", "applio", "dummy"
 # > "dummy" - drop all text; no external service required (useful for OCR-only testing)
-TTS_PROVIDER = "dummy"
-RVC_PROVIDER = "" # set to empty string to disable RVC
+TTS_PROVIDER = "kokoro_fastapi"
+# Available values:
+# "applio", "rvc_gradio", ""
+# set to empty string to disable RVC
+RVC_PROVIDER = "applio"
 TTS_FILES_DIR = "/dev/shm/cantread/tts"
 
 
@@ -312,5 +342,6 @@ REDIS_URL = "redis://localhost:6379/0"
 # Redis keys used by the pipeline
 PLAYBACK_HASH_KEY = "cantread:playback:results"   # hash: seq_num → wav_path | "SKIP"
 SEQ_COUNTER_KEY = "cantread:seq_counter"           # string: next sequence number to issue
+FRAME_SEQ_COUNTER_KEY = "cantread:frame_seq_counter" # string: next frame sequence number to issue
 HISTORY_HASH_KEY = "cantread:history"              # hash: seq_num → JSON entry (universal history)
 BATCH_COUNTER_KEY = "cantread:batch_counter"       # string: next batch number to issue

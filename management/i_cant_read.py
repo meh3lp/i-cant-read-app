@@ -30,7 +30,9 @@ class ICantRead:
         self._health_check()
         self._connect_redis()
 
+
     # ─── Internal methods ───────────────────────────────────────────────────────
+
     def _health_check(self):
         try:
             run_all_checks()
@@ -59,6 +61,7 @@ class ICantRead:
 
 
     # ─── Public helper methods ───────────────────────────────────────────────────────
+
     @property
     def ocr_provider_requires_frame_capture(self) -> bool:
         return config.OCR_PROVIDER in ["ollama", "ollama_plain", "owocr_send_frames"]
@@ -71,7 +74,8 @@ class ICantRead:
         first listener receives frames and sends to dispatch_captured_frame
         second listener receives text and sends it to dispatch_recognized_text
         """
-        return config.OCR_PROVIDER in ["ollama", "ollama_plain", "owocr_receive_only"]
+        return config.OCR_PROVIDER in ["ollama", "ollama_plain", "owocr_send_frames"]
+
 
     @property
     def listeners(self) -> list:
@@ -82,7 +86,9 @@ class ICantRead:
             listeners.append(self.text_listener)
         return listeners
 
+
     # ─── Main logic methods ───────────────────────────────────────────────────────
+
     def run(self):
         '''
         Start the main pipeline: listeners → dispatcher → tasks → player.
@@ -169,7 +175,16 @@ class ICantRead:
     
 
     def _init_listeners(self):
-        # 1) Frame capture listeners
+        if config.TEXT_SOURCE == "ocr":
+            self._init_ocr_listeners()
+        elif config.TEXT_SOURCE == "websocket_client":
+            raise NotImplementedError("websocket_client text source not implemented yet")
+        elif config.TEXT_SOURCE == "websocket_server":
+            raise NotImplementedError("websocket_server text source not implemented yet")
+
+
+    def _init_ocr_listeners(self):
+        # 1) (OCR) Frame capture listeners
         if self.ocr_provider_requires_frame_capture:
             frame_listener_services = {
                 "obs_plugin": ("services.listeners.obs_plugin_listener", "OBSPluginListener"),
@@ -184,16 +199,21 @@ class ICantRead:
                 self._stop_event,
                 self._redis
             )
-        # 2) Text-only listeners
+        # 2) (OCR) Text-receiving listeners
         if not self.ocr_provider_returns_text_immediately or not self.ocr_provider_requires_frame_capture:
+            ocr_listener_dependencies = {
+                # "owocr_send_frames": "websocket"
+            }
             text_listener_services = {
                 "websocket": ("services.listeners.websocket_listener", "WebSocketListener"),
             }
-            text_listener_module = importlib.import_module(text_listener_services[config.TEXT_LISTENER_METHOD][0])
-            text_listener_class = getattr(text_listener_module, text_listener_services[config.TEXT_LISTENER_METHOD][1])
-            self.text_listener = text_listener_class(
-                self,
-                self.dispatcher,
-                self._stop_event,
-                self._redis
-            )
+            required_listener = ocr_listener_dependencies.get(config.OCR_PROVIDER)
+            if required_listener:
+                text_listener_module = importlib.import_module(text_listener_services[required_listener][0])
+                text_listener_class = getattr(text_listener_module, text_listener_services[required_listener][1])
+                self.text_listener = text_listener_class(
+                    self,
+                    self.dispatcher,
+                    self._stop_event,
+                    self._redis
+                )

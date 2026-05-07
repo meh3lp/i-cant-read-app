@@ -1,0 +1,17 @@
+[project]
+name = "i-cant-read-app"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "celery[redis]>=5.6.3",
+    "imagehash>=4.3.2",
+    "numpy>=2.4.4",
+    "obsws-python>=1.8.0",
+    "ollama>=0.6.2",
+    "opencv-python>=4.13.0.92",
+    "pillow>=12.2.0",
+    "requests>=2.33.1",
+    "websockets>=16.0",
+]

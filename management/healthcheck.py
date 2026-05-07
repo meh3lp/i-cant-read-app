@@ -1,28 +1,12 @@
-"""Verify that owocr/OBS, Kokoro, Ollama, and RVC services are reachable."""
+"""Verify that OBS, Kokoro, Ollama, and RVC services are reachable."""
 
-import asyncio
 import logging
 import requests
-import websockets
+import obsws_python as obs_ws
 
 import config
 
 log = logging.getLogger(__name__)
-
-
-def check_owocr() -> None:
-    """Verify owocr websocket is accepting connections."""
-    async def _probe():
-        async with websockets.connect(config.OWOCR_WS_URL, open_timeout=3):
-            pass  # connection succeeded
-
-    try:
-        asyncio.get_event_loop().run_until_complete(_probe())
-    except Exception:
-        # Python ≥3.10 may not have a running loop yet
-        asyncio.run(_probe())
-    log.info("owocr websocket OK  (%s)", config.OWOCR_WS_URL)
-
 
 def check_kokoro() -> None:
     """Verify Kokoro TTS Gradio server is responding."""
@@ -70,7 +54,6 @@ def check_ollama_ocr() -> None:
 
 def check_obs() -> None:
     """Verify OBS websocket is accepting connections."""
-    import obsws_python as obs_ws
     client = obs_ws.ReqClient(
         host=config.OBS_HOST,
         port=config.OBS_PORT,
@@ -107,10 +90,6 @@ def run_all_checks() -> None:
         },
     }
     services = {
-        "owocr": {
-            "check": check_owocr,
-            "condition": lambda cfg: cfg.OCR_PROVIDER in ("owocr_receive_only", "owocr_send_frames"),
-        },
         "Kokoro TTS": {
             "check": check_kokoro,
             "condition": lambda cfg: cfg.TTS_PROVIDER == "kokoro_fastapi",

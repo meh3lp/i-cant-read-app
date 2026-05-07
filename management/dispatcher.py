@@ -72,6 +72,11 @@ class Dispatcher:
         return int(self.redis.incr(config.SEQ_COUNTER_KEY)) - 1
 
 
+    def _next_frame_seq(self) -> int:
+        """Atomically claim the next frame sequence number from Redis."""
+        return int(self.redis.incr(config.FRAME_SEQ_COUNTER_KEY)) - 1
+
+
     def _build_text_pipeline(self) -> list:
         """Return the shared tail of the chain: dedup → filter → cleanup → tts → rvc → playback."""
         tasks = []
@@ -132,7 +137,7 @@ class Dispatcher:
         via dispatch_recognized_text.
         """
         tasks = [
-            initialize_frame_chain.si((b64_image, 0)),
+            initialize_frame_chain.si((b64_image, self._next_frame_seq())),
             self.ocr_task.s(),
         ]
 
