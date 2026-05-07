@@ -1,0 +1,11 @@
+websockets
+gradio_client
+requests
+celery[redis]
+redis
+obsws-python
+opencv-python
+numpy
+imagehash
+Pillow
+ollama
