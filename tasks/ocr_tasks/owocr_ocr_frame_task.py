@@ -34,4 +34,7 @@ def run_owocr_ocr_frame(prev_result: list) -> list:
 
     log.info(f"OCR result for frame {seq_num}: {ocr_result}")
 
+    if config.OWOCR_DELETE_OUTPUTS:
+        os.remove(output_path)
+
     return [[{"speaker": "Narrator", "text": ocr_result}], seq_num]

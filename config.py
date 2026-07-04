@@ -40,12 +40,11 @@ TEXT_WEBSOCKET_PORT = 7331
 
 # Must match "read_from" setting in owocr
 OWOCR_READ_FROM_DIRECTORY = "/dev/shm/owocr_input"
-
 # Must match "write_to" setting in owocr
 # output_format in owocr must be set to "text"
 # delete_images in owocr is recommended to be on
 OWOCR_WRITE_TO_DIRECTORY = "/dev/shm/owocr_output"
-
+OWOCR_DELETE_OUTPUTS = True
 OWOCR_MONITOR_DIRECTORY_INTERVAL = 0.5  # seconds between checks for OCR results
 
 
