@@ -237,7 +237,7 @@ TEXT_FILTER_UI_BLOCKLIST: list[str] = [
 # ─── TTS ──────────────────────────────────────────────────
 # ──────────────────────────────────────────────────────────
 # Available values:
-# "kokoro_fastapi", "applio", "dummy"
+# "kokoro_fastapi", "applio", "dummy", "qwen3"
 # > "dummy" - drop all text; no external service required (useful for OCR-only testing)
 TTS_PROVIDER = "kokoro_fastapi"
 # Available values:
@@ -290,6 +290,14 @@ APPLIO_EXPORT_FORMAT = "WAV"
 APPLIO_SPLIT_AUDIO = True
 
 
+# ── Qwen3 TTS (TTS_PROVIDER == "qwen3") ────────────────────────────────────────────
+QWEN3_TTS_URL = "http://localhost:8000"
+QWEN3_TTS_MAX_BATCH_SENTENCES = 4
+QWEN3_TTS_REF_AUDIO_PATH = "/home/h3lp/Projects/i-cant-read/i-cant-read-app/voices/cyrene/reference.wav"
+QWEN3_TTS_REF_TEXT = "As fellow pink haired girls, not only is our hair color the same, but we also like the same things. I really want to have a nice, long chat with march. We'd definitely create lots of brilliant memories together."
+QWEN3_TTS_LANGUAGE = "English"
+
+
 # ── Voice presets (maps speaker names to TTS/RVC settings) ────────────────
 # Each entry maps a speaker name to backend-specific TTS and RVC parameters.
 # The "default" key is the fallback when a speaker has no preset.
@@ -303,6 +311,11 @@ VOICE_PRESETS: dict = {
                 "voice": KOKORO_VOICE,
                 "speed": KOKORO_SPEED,
             },
+            "qwen3_tts_voice_clone": {
+                "ref_audio_path": "/home/h3lp/Projects/i-cant-read/i-cant-read-app/voices/cyrene/reference.wav",
+                "ref_text": "As fellow pink haired girls, not only is our hair color the same, but we also like the same things. I really want to have a nice, long chat with march. We'd definitely create lots of brilliant memories together.",
+                "language": "English"
+            }
         },
         # "rvc": {
         #     "rvc_gradio": {

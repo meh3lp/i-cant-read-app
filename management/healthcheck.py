@@ -29,6 +29,12 @@ def check_applio() -> None:
     log.info("Applio OK  (%s)", config.APPLIO_URL)
 
 
+def check_qwen3() -> None:
+    r = requests.get(f"{config.QWEN3_TTS_URL}/health")
+    r.raise_for_status
+    log.info("Qwen3 TTS OK  (%s)", config.QWEN3_TTS_URL)
+
+
 def _check_ollama_model(model_name: str, label: str) -> None:
     """Verify Ollama API is responding and *model_name* is available."""
     r = requests.get(f"{config.OLLAMA_URL}/api/tags", timeout=5)
@@ -101,6 +107,10 @@ def run_all_checks() -> None:
         "Applio": {
             "check": check_applio,
             "condition": lambda cfg: cfg.TTS_PROVIDER == "applio" or cfg.RVC_PROVIDER == "applio",
+        },
+        "Qwen3 TTS": {
+            "check": check_qwen3,
+            "condition": lambda cfg: cfg.TTS_PROVIDER == 'qwen3'
         },
         "Ollama cleanup": {
             "check": check_ollama_cleanup,

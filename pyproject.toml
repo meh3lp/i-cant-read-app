@@ -10,6 +10,7 @@ dependencies = [
     "numpy>=2.4.4",
     "obsws-python>=1.8.0",
     "ollama>=0.6.2",
+    "openai>=2.44.0",
     "opencv-python>=4.13.0.92",
     "pillow>=12.2.0",
     "requests>=2.33.1",

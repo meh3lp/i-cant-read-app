@@ -12,6 +12,7 @@ from .textfilter_task import filter_text
 from .tts_tasks import (
     run_kokoro_fastapi,
     run_applio_tts,
+    run_qwen3_tts,
     run_dummy_tts,
 )
 from .initial_task import initialize_chain, initialize_frame_chain
@@ -32,6 +33,7 @@ __all__ = (
     "filter_text",
     "run_kokoro_fastapi",
     "run_applio_tts",
+    "run_qwen3_tts",
     "run_dummy_tts",
     "initialize_chain",
     "initialize_frame_chain",

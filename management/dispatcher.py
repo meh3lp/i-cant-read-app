@@ -15,6 +15,7 @@ from tasks import (
     run_kokoro_fastapi,
     run_applio_tts,
     run_dummy_tts,
+    run_qwen3_tts,
     initialize_chain,
     initialize_frame_chain,
     run_ollama_ocr_frame,
@@ -47,6 +48,7 @@ class Dispatcher:
         tts_task_options = {
             "kokoro_fastapi": run_kokoro_fastapi,
             "applio": run_applio_tts,
+            "qwen3": run_qwen3_tts,
             "dummy": run_dummy_tts,
         }
         tts_task_module = tts_task_options.get(config.TTS_PROVIDER)
